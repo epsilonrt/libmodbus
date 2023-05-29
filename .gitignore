@@ -31,6 +31,7 @@ Makefile.in
 /libtool
 /ltmain.sh
 /missing
+/libmodbusepsi.pc
 /stamp-h1
 src/modbus-version.h
 src/win32/modbus.dll.manifest
