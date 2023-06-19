@@ -9,6 +9,7 @@
 .deps
 .libs
 .DS_Store
+build/
 
 # Editors
 /*.sublime-*
