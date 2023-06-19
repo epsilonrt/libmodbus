@@ -117,9 +117,6 @@
 /* Define to 1 if you have the <winsock2.h> header file. */
 #cmakedefine HAVE_WINSOCK2_H
 
-/* Define to the sub-directory where libtool stores uninstalled libraries. */
-#undef LT_OBJDIR
-
 /* Name of package */
 #define PACKAGE "@CMAKE_PROJECT_NAME@"
 
@@ -151,33 +148,35 @@
 #cmakedefine HAVE_VFORK
 
 /* Required for MinGW with GCC v4.8.1 on Win7 */
+#ifndef WINVER
 #define WINVER @WINVER@
+#endif
 
 /* Define to `__inline__' or `__inline' if that's what the C compiler
    calls it, or to nothing if 'inline' is not supported under any name.  */
 #ifndef __cplusplus
-#cmakedefine inline
+#cmakedefine inline @inline@
 #endif
 
 /* Define to the type of a signed integer type of width exactly 64 bits if
    such a type exists and the standard includes do not define it. */
-#cmakedefine int64_t
+#cmakedefine int64_t @int64_t@
 
 /* Define to `unsigned int' if <sys/types.h> does not define. */
-#cmakedefine size_t
+#cmakedefine size_t @size_t@
 
 /* Define to `int' if <sys/types.h> does not define. */
-#cmakedefine ssize_t
+#cmakedefine ssize_t @ssize_t@
 
 /* Define to the type of an unsigned integer type of width exactly 16 bits if
    such a type exists and the standard includes do not define it. */
-#cmakedefine uint16_t
+#cmakedefine uint16_t @uint16_t@
 
 /* Define to the type of an unsigned integer type of width exactly 32 bits if
    such a type exists and the standard includes do not define it. */
-#cmakedefine uint32_t
+#cmakedefine uint32_t @uint32_t@
 
 /* Define to the type of an unsigned integer type of width exactly 8 bits if
    such a type exists and the standard includes do not define it. */
-#cmakedefine uint8_t
+#cmakedefine uint8_t @uint8_t@
 
