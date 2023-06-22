@@ -26,7 +26,8 @@
 /* define DLLBUILD when building the DLL */
 #  define MODBUS_API __declspec(dllexport)
 # else
-#  define MODBUS_API __declspec(dllimport)
+//#  define MODBUS_API __declspec(dllimport)
+# define MODBUS_API
 # endif
 #else
 # define MODBUS_API

@@ -9,7 +9,28 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef _WIN32
+# include <winsock2.h>
+# include <windows.h>
+int usleep(__int64 usec) 
+{ 
+    HANDLE timer; 
+    LARGE_INTEGER ft; 
+
+    ft.QuadPart = -(10*usec); // Convert to 100 nanosecond interval, negative value indicates relative time
+
+    timer = CreateWaitableTimer(NULL, TRUE, NULL); 
+    SetWaitableTimer(timer, &ft, 0, NULL, NULL, 0); 
+    WaitForSingleObject(timer, INFINITE); 
+    CloseHandle(timer); 
+    return 0;
+}
+int close(int fd) { return closesocket(fd); }
+#else
+# include <sys/socket.h>
 #include <unistd.h>
+#endif
 
 #include "unit-test.h"
 
@@ -33,15 +54,15 @@ int send_crafted_request(modbus_t *ctx,
 int equal_dword(uint16_t *tab_reg, const uint32_t value);
 int is_memory_equal(const void *s1, const void *s2, size_t size);
 
-#define BUG_REPORT(_cond, _format, _args...) \
-  printf("\nLine %d: assertion error for '%s': " _format "\n", __LINE__, #_cond, ##_args)
+#define BUG_REPORT(_cond, _format, ...) \
+  printf("\nLine %d: assertion error for '%s': " _format "\n", __LINE__, #_cond, ##__VA_ARGS__)
 
-#define ASSERT_TRUE(_cond, _format, __args...) \
+#define ASSERT_TRUE(_cond, _format, ...) \
   {                                            \
     if (_cond) {                               \
       printf("OK\n");                          \
     } else {                                   \
-      BUG_REPORT(_cond, _format, ##__args);    \
+      BUG_REPORT(_cond, _format, ##__VA_ARGS__);    \
       goto close;                              \
     }                                          \
   };
@@ -79,7 +100,7 @@ int main(int argc, char *argv[])
     int success = FALSE;
     int old_slave;
     char *ip_or_device;
-
+    
     if (argc > 1) {
         if (strcmp(argv[1], "tcp") == 0) {
             use_backend = TCP;

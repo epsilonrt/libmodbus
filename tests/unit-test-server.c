@@ -3,19 +3,34 @@
  *
  * SPDX-License-Identifier: BSD-3-Clause
  */
-
+// #include <config.h>
 #include <errno.h>
 #include <modbus.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 
 // clang-format off
-#ifdef _WIN32
+#ifdef _MSC_VER
 # include <winsock2.h>
+# include <windows.h>
+int usleep(__int64 usec) 
+{ 
+    HANDLE timer; 
+    LARGE_INTEGER ft; 
+
+    ft.QuadPart = -(10*usec); // Convert to 100 nanosecond interval, negative value indicates relative time
+
+    timer = CreateWaitableTimer(NULL, TRUE, NULL); 
+    SetWaitableTimer(timer, &ft, 0, NULL, NULL, 0); 
+    WaitForSingleObject(timer, INFINITE); 
+    CloseHandle(timer); 
+    return 0;
+}
+int close(int fd) { return closesocket(fd); }
 #else
 # include <sys/socket.h>
+#include <unistd.h>
 #endif
 
 /* For MinGW */

@@ -5,7 +5,10 @@
  */
 
 #include <stdio.h>
-#ifndef _MSC_VER
+#ifdef _MSC_VER
+# include <winsock2.h>
+int close(int fd) { return closesocket(fd); }
+#else
 #include <unistd.h>
 #endif
 #include <errno.h>
