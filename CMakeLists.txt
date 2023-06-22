@@ -18,7 +18,13 @@ set(PROJECT_BUGREPORT "https://github.com/stephane/libmodbus/issues")
 
 string(SUBSTRING ${CMAKE_PROJECT_NAME} 3 -1 PROJECT_SHORTNAME) # remove "lib" prefix
 
-# set(CMAKE_VERBOSE_MAKEFILE ON)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}")
+
+option(BUILD_SHARED_LIBS "Build using shared libraries" ON)
+
+set(CMAKE_VERBOSE_MAKEFILE OFF)
 
 # Offer the user the choice of overriding the installation directories
 set(INSTALL_LIB_DIR lib CACHE PATH "Installation directory for libraries")
@@ -114,11 +120,17 @@ if(NOT MSVC)
 endif()
 
 configure_file( ${LIBMODBUS_SRC_DIR}/modbus-version.h.in
-                ${CMAKE_CURRENT_BINARY_DIR}/modbus-version.h @ONLY)
+                ${CMAKE_BINARY_DIR}/modbus-version.h @ONLY)
 
 configure_file( ${CMAKE_SOURCE_DIR}/cmake/config.h.in 
-                ${CMAKE_CURRENT_BINARY_DIR}/config.h)
+                ${CMAKE_BINARY_DIR}/config.h)
 
+if(WIN32)
+  configure_file( ${CMAKE_SOURCE_DIR}/cmake/modbus.rc.in
+                  ${CMAKE_BINARY_DIR}/modbus.rc @ONLY)
+  configure_file( ${LIBMODBUS_SRC_DIR}/win32/modbus.dll.manifest.in
+                  ${CMAKE_BINARY_DIR}/modbus.dll.manifest @ONLY)
+endif()
 
 # Make relative paths absolute (needed later on)
 foreach(p LIB INCLUDE CMAKE DATA DOC EXAMPLES)
