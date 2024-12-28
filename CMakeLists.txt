@@ -1,4 +1,8 @@
-cmake_minimum_required(VERSION 3.0.0)
+# main CMakeLists.txt file for libmodbus
+# Copyright © Pascal JEAN <epsilonrt@gmail.com>
+# SPDX-License-Identifier: BSD-3-Clause
+
+cmake_minimum_required(VERSION 3.27)
 
 # Appends the cmake/modules path to MAKE_MODULE_PATH variable.
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" "${CMAKE_CURRENT_BINARY_DIR}" ${CMAKE_MODULE_PATH})
@@ -39,12 +43,17 @@ set(INSTALL_CMAKE_DIR ${DEF_INSTALL_CMAKE_DIR} CACHE PATH "Installation director
 set(INSTALL_DOC_DIR ${DEF_INSTALL_DOC_DIR} CACHE PATH "Installation directory for documentation")
 set(INSTALL_DATA_DIR ${DEF_INSTALL_DATA_DIR} CACHE PATH "Installation directory for data")
 
+include(CMakePrintHelpers)
 
 message(STATUS "Configuring ${PROJECT_SHORTNAME} ${PROJECT_VERSION}....")
-message(STATUS "${PROJECT_DESCRIPTION}")
-message(STATUS "  Building for ${CMAKE_SYSTEM_PROCESSOR} architecture.")
-message(STATUS "  C compiler: ${CMAKE_C_COMPILER} (${CMAKE_C_COMPILER_ID})")
-message(STATUS "  Install prefix: ${CMAKE_INSTALL_PREFIX}")
+message(STATUS "> ${PROJECT_DESCRIPTION}")
+message(STATUS ">  Building for ${CMAKE_SYSTEM_PROCESSOR} architecture.")
+message(STATUS ">  C compiler: ${CMAKE_C_COMPILER} (${CMAKE_C_COMPILER_ID})")
+message(STATUS ">  Install prefix: ${CMAKE_INSTALL_PREFIX}")
+# cmake_print_variables(LIBMODBUS_VERSION_MAJOR)
+# cmake_print_variables(LIBMODBUS_VERSION_MINOR)
+# cmake_print_variables(LIBMODBUS_VERSION_MICRO)
+# cmake_print_variables(LIBMODBUS_VERSION)
 
 include(CheckIncludeFiles)
 include(CheckFunctionExists)
@@ -151,15 +160,18 @@ set (MODBUS_INSTALL_DATA_DIR "${INSTALL_DATA_DIR}/${PROJECT_SHORTNAME}")
 configure_file( ${CMAKE_SOURCE_DIR}/cmake/libmodbus.pc.in 
                 ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pc @ONLY)
 
-
+# Add the library source directory
 add_subdirectory(src)
+
+# CTest configuration
+set(TEST_DIRECTORY ctest)
+set(TEST_FILE_PREFIX test_)
 
 include(CTest)
 enable_testing()
+add_subdirectory(ctest)
 
-
-add_subdirectory(tests)
-
+# Packaging configuration
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
 
