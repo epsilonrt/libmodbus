@@ -1,3 +1,7 @@
+# src directory CMakeLists.txt for libmodbus
+# Copyright © Pascal JEAN <epsilonrt@gmail.com>
+# SPDX-License-Identifier: BSD-3-Clause
+
 # Libraries 
 file(GLOB_RECURSE src_modbus  ${LIBMODBUS_SRC_DIR}/*.c)
 
@@ -9,7 +13,8 @@ set_target_properties(${PROJECT_SHORTNAME} PROPERTIES
   SOVERSION ${PROJECT_VERSION_MAJOR}
   )
 target_include_directories(${PROJECT_SHORTNAME} BEFORE PRIVATE ${CMAKE_BINARY_DIR})
-if(MSVC)
+
+if(WIN32)
   find_library(WSOCK32_LIBRARY wsock32)
   find_library(WS2_32_LIBRARY ws2_32)
   if (WSOCK32_LIBRARY AND WS2_32_LIBRARY)
@@ -23,7 +28,7 @@ if(MSVC)
   target_compile_definitions(${PROJECT_SHORTNAME} PRIVATE _WINSOCK_DEPRECATED_NO_WARNINGS)
   target_compile_definitions(${PROJECT_SHORTNAME} PRIVATE _CRT_SECURE_NO_WARNINGS)
   target_sources(${PROJECT_SHORTNAME} PRIVATE ${CMAKE_BINARY_DIR}/modbus.rc)
-endif(MSVC)
+endif(WIN32)
 
 
 install (TARGETS ${PROJECT_SHORTNAME}
