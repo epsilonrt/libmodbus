@@ -1,0 +1,189 @@
+From 321eb73b6f6a6ad0cd85cb088da2992fa7878c52 Mon Sep 17 00:00:00 2001
+From: epsilonrt <epsilonrt@gmail.com>
+Date: Fri, 23 Jun 2023 14:56:32 +0200
+Subject: [PATCH] add modbus_rtu_recv_filter
+
+Signed-off-by: epsilonrt <epsilonrt@gmail.com>
+---
+ docs/modbus_rtu_get_recv_filter.md | 35 ++++++++++++++++++++++++++++
+ docs/modbus_rtu_set_recv_filter.md | 32 ++++++++++++++++++++++++++
+ src/modbus-rtu-private.h           |  1 +
+ src/modbus-rtu.c                   | 37 +++++++++++++++++++++++++++++-
+ src/modbus-rtu.h                   |  3 +++
+ 5 files changed, 107 insertions(+), 1 deletion(-)
+ create mode 100644 docs/modbus_rtu_get_recv_filter.md
+ create mode 100644 docs/modbus_rtu_set_recv_filter.md
+
+diff --git a/docs/modbus_rtu_get_recv_filter.md b/docs/modbus_rtu_get_recv_filter.md
+new file mode 100644
+index 0000000..d545265
+--- /dev/null
++++ b/docs/modbus_rtu_get_recv_filter.md
+@@ -0,0 +1,35 @@
++# modbus_rtu_get_recv_filter(3)
++
++## Name
++
++modbus_rtu_get_recv_filter - get the current reception filter _flag_
++
++
++## Synopsis
++
++```c
++int modbus_rtu_get_recv_filter(modbus_t *'ctx');
++```
++
++## Description
++
++The `modbus_rtu_get_recv_filter()` function shall get the current reception 
++filter flag of the libmodbus context _ctx_. The possible returned values are 
++`FALSE` or `TRUE`. By default, the boolean flag is set to `TRUE`. When the value 
++_flag_ is set to `TRUE`, only messages to the address of the slave defined in 
++the context and broadcast messages are returned by `modbus_receive`, the others
++are ignored. When the value _flag_ is set to `FALSE` all messages are returned 
++by `modbus_receive`.
++
++This function can only be used with a context using a RTU backend.
++
++
++## Return value
++
++The function shall return the current reception filter _flag_ if successful. 
++Otherwise it shall return -1 and set errno.
++
++## See also
++
++- [modbus_receive](modbus_receive.md)  
++- [modbus_rtu_set_recv_filter](modbus_rtu_set_recv_filter.md)  
+diff --git a/docs/modbus_rtu_set_recv_filter.md b/docs/modbus_rtu_set_recv_filter.md
+new file mode 100644
+index 0000000..4ba1a0e
+--- /dev/null
++++ b/docs/modbus_rtu_set_recv_filter.md
+@@ -0,0 +1,32 @@
++# modbus_rtu_set_recv_filter(3)
++
++## Name
++
++modbus_rtu_set_recv_filter - set reception filter flag of the context
++
++
++## Synopsis
++
++```c
++int modbus_rtu_set_recv_filter(modbus_t *'ctx', int 'flag');*
++```
++
++## Description
++
++The `modbus_rtu_set_recv_filter()` function shall set the reception filter flag 
++of the `modbus_t` context by using the argument _flag_. By default, the boolean 
++flag is set to `TRUE`. When the value _flag_ is set to `TRUE`, only messages to 
++the address of the slave defined in the context and broadcast messages are 
++returned by `modbus_receive`, the others are ignored. When the value _flag_ is 
++set to `FALSE` all messages are returned by `modbus_receive`.
++
++This function can only be used with a context using a RTU backend.
++
++## Return value
++
++The function shall return 0 if successful. Otherwise it shall return -1 and set errno.
++
++## See also
++
++- [modbus_receive](modbus_receive.md)  
++- [modbus_rtu_get_recv_filter](modbus_rtu_get_recv_filter.md)  
+diff --git a/src/modbus-rtu-private.h b/src/modbus-rtu-private.h
+index 01e6a91..b0f0ff2 100644
+--- a/src/modbus-rtu-private.h
++++ b/src/modbus-rtu-private.h
+@@ -72,6 +72,7 @@ typedef struct _modbus_rtu {
+ #endif
+     /* To handle many slaves on the same link */
+     int confirmation_to_ignore;
++    int disable_receive_filter;
+ } modbus_rtu_t;
+ 
+ #endif /* MODBUS_RTU_PRIVATE_H */
+diff --git a/src/modbus-rtu.c b/src/modbus-rtu.c
+index b774923..3ab1d27 100644
+--- a/src/modbus-rtu.c
++++ b/src/modbus-rtu.c
+@@ -351,10 +351,12 @@ static int _modbus_rtu_check_integrity(modbus_t *ctx, uint8_t *msg, const int ms
+     uint16_t crc_calculated;
+     uint16_t crc_received;
+     int slave = msg[0];
++    modbus_rtu_t *ctx_rtu = ctx->backend_data;
+ 
+     /* Filter on the Modbus unit identifier (slave) in RTU mode to avoid useless
+      * CRC computing. */
+-    if (slave != ctx->slave && slave != MODBUS_BROADCAST_ADDRESS) {
++    if (slave != ctx->slave && slave != MODBUS_BROADCAST_ADDRESS && 
++                                    ctx_rtu->disable_receive_filter == FALSE) {
+         if (ctx->debug) {
+             printf("Request for slave %d ignored (not %d)\n", slave, ctx->slave);
+         }
+@@ -1091,6 +1093,38 @@ int modbus_rtu_set_rts_delay(modbus_t *ctx, int us)
+     }
+ }
+ 
++int modbus_rtu_get_recv_filter(modbus_t *ctx)
++{
++    if (ctx == NULL) {
++        errno = EINVAL;
++        return -1;
++    }
++
++    if (ctx->backend->backend_type == _MODBUS_BACKEND_TYPE_RTU) {
++        modbus_rtu_t *ctx_rtu = ctx->backend_data;
++        return (ctx_rtu->disable_receive_filter == FALSE);
++    } 
++    errno = EINVAL;
++    return -1;
++}
++
++int modbus_rtu_set_recv_filter(modbus_t *ctx, int on)
++{
++    if (ctx == NULL) {
++        errno = EINVAL;
++        return -1;
++    }
++
++    if (ctx->backend->backend_type == _MODBUS_BACKEND_TYPE_RTU) {
++        modbus_rtu_t *ctx_rtu = ctx->backend_data;
++
++        ctx_rtu->disable_receive_filter = (on == FALSE);
++    }
++    /* Wrong backend specified */
++    errno = EINVAL;
++    return -1;
++}
++
+ static void _modbus_rtu_close(modbus_t *ctx)
+ {
+     /* Restore line settings and close file descriptor in RTU mode */
+@@ -1285,6 +1319,7 @@ modbus_new_rtu(const char *device, int baud, char parity, int data_bit, int stop
+ #endif
+ 
+     ctx_rtu->confirmation_to_ignore = FALSE;
++    ctx_rtu->disable_receive_filter = FALSE;
+ 
+     return ctx;
+ }
+diff --git a/src/modbus-rtu.h b/src/modbus-rtu.h
+index 8e89e73..6bae36e 100644
+--- a/src/modbus-rtu.h
++++ b/src/modbus-rtu.h
+@@ -38,6 +38,9 @@ MODBUS_API int modbus_rtu_set_custom_rts(modbus_t *ctx,
+ MODBUS_API int modbus_rtu_set_rts_delay(modbus_t *ctx, int us);
+ MODBUS_API int modbus_rtu_get_rts_delay(modbus_t *ctx);
+ 
++MODBUS_API int modbus_rtu_set_recv_filter(modbus_t *ctx, int on);
++MODBUS_API int modbus_rtu_get_recv_filter(modbus_t *ctx);
++
+ MODBUS_END_DECLS
+ 
+ #endif /* MODBUS_RTU_H */
+-- 
+2.39.0.windows.2
+
