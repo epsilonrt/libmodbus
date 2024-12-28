@@ -47,7 +47,7 @@ function(GetAutoconfVersion _prefix _src_dir)
   set (${_prefix}_FOUND TRUE PARENT_SCOPE)
   set (${_prefix}_VERSION_MAJOR ${major} PARENT_SCOPE)
   set (${_prefix}_VERSION_MINOR ${minor} PARENT_SCOPE)
-  set (${_prefix}_VERSION_MICRO ${minor} PARENT_SCOPE)
+  set (${_prefix}_VERSION_MICRO ${micro} PARENT_SCOPE)
   set (${_prefix}_VERSION ${version} PARENT_SCOPE)
 
   unset(configure_ac)
