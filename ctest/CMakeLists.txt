@@ -21,8 +21,8 @@ FetchContent_MakeAvailable(unity)
 
 # Collect a list of all the test files in the test directory.
 set(ABSOLUTE_TEST_DIRECTORY_PATH ${CMAKE_SOURCE_DIR}/${TEST_DIRECTORY})
-cmake_print_variables(ABSOLUTE_TEST_DIRECTORY_PATH)
-cmake_print_variables(PROJECT_SHORTNAME)
+# cmake_print_variables(ABSOLUTE_TEST_DIRECTORY_PATH)
+# cmake_print_variables(PROJECT_SHORTNAME)
 
 file(GLOB_RECURSE TEST_FILES RELATIVE ${ABSOLUTE_TEST_DIRECTORY_PATH} ${TEST_FILE_PREFIX}*)
 
@@ -73,4 +73,8 @@ foreach (TEST_FILE ${TEST_FILES})
     message(STATUS "Added test: " ${MODULE_TEST_NAME})
 endforeach ()
 
-
+add_test(NAME unit-tests
+    COMMAND ${CMAKE_COMMAND}
+            -DSERVER=$<TARGET_FILE:unit-server>
+            -DCLIENT=$<TARGET_FILE:unit-client>
+    -P ${CMAKE_CURRENT_SOURCE_DIR}/runtests.cmake)
