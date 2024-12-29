@@ -2,7 +2,7 @@
 # Copyright © Pascal JEAN <epsilonrt@gmail.com>
 # SPDX-License-Identifier: BSD-3-Clause
 
-cmake_minimum_required(VERSION 3.27)
+cmake_minimum_required(VERSION 3.14)
 
 # Appends the cmake/modules path to MAKE_MODULE_PATH variable.
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake" "${CMAKE_CURRENT_BINARY_DIR}" ${CMAKE_MODULE_PATH})
