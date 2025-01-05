@@ -43,12 +43,21 @@ int close (int fd) {
 // clang-format on
 
 #include "unit-test.h"
+#include "unity.h"
 
 enum {
   TCP,
   TCP_PI,
   RTU
 };
+
+void setUp (void) {
+  // set stuff up here
+}
+
+void tearDown (void) {
+  // clean stuff up here
+}
 
 int main (int argc, char *argv[]) {
   int s = -1;

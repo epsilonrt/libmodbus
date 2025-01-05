@@ -187,6 +187,8 @@ int main (int argc, char *argv[]) {
 
 void test_connect (void) {
 
+  TEST_PRINTF ("Use backend: %d\n", use_backend);
+
   if (use_backend == TCP) {
 
     ctx = modbus_new_tcp (ip_or_device, 1502);
@@ -286,32 +288,30 @@ void test_holding_registers (void) {
   /** HOLDING REGISTERS **/
 
   /* Single register */
-  TEST_ASSERT_EQUAL_INT (1,
-                         modbus_write_register (ctx, UT_REGISTERS_ADDRESS, 0x1234));
-  TEST_ASSERT_EQUAL_INT (1,
-                         modbus_read_registers (ctx, UT_REGISTERS_ADDRESS, 1, tab_rp_registers));
-  TEST_ASSERT_EQUAL_UINT16 (0x1234,
-                            tab_rp_registers[0]);
+  int rc = modbus_write_register (ctx, UT_REGISTERS_ADDRESS, 0x1234);
+  TEST_ASSERT_EQUAL_INT (1, rc);
+  rc = modbus_read_registers (ctx, UT_REGISTERS_ADDRESS, 1, tab_rp_registers);
+  TEST_ASSERT_EQUAL_INT (1, rc);
+  TEST_ASSERT_EQUAL_UINT16 (0x1234, tab_rp_registers[0]);
   /* End of single register */
 
   /* Many registers */
-  TEST_ASSERT_EQUAL_INT (UT_REGISTERS_NB,
-                         modbus_write_registers (ctx, UT_REGISTERS_ADDRESS, UT_REGISTERS_NB, UT_REGISTERS_TAB));
-  TEST_ASSERT_EQUAL_INT (UT_REGISTERS_NB,
-                         modbus_read_registers (ctx, UT_REGISTERS_ADDRESS, UT_REGISTERS_NB, tab_rp_registers));
+  rc = modbus_write_registers (ctx, UT_REGISTERS_ADDRESS, UT_REGISTERS_NB, UT_REGISTERS_TAB);
+  TEST_ASSERT_EQUAL_INT (UT_REGISTERS_NB, rc);
+  rc = modbus_read_registers (ctx, UT_REGISTERS_ADDRESS, UT_REGISTERS_NB, tab_rp_registers);
+  TEST_ASSERT_EQUAL_INT (UT_REGISTERS_NB, rc);
   for (int i = 0; i < UT_REGISTERS_NB; i++) {
 
     TEST_ASSERT_EQUAL_UINT16 (UT_REGISTERS_TAB[i],
                               tab_rp_registers[i]);
   }
+  rc = modbus_read_registers (ctx, UT_REGISTERS_ADDRESS, 0, tab_rp_registers);
+  TEST_ASSERT_EQUAL_INT (-1, rc);
 
-  TEST_ASSERT_EQUAL_INT (-1,
-                         modbus_read_registers (ctx, UT_REGISTERS_ADDRESS, 0, tab_rp_registers));
-
+  #if 0
   uint16_t nb_points = (UT_REGISTERS_NB > UT_INPUT_REGISTERS_NB) ? UT_REGISTERS_NB  : UT_INPUT_REGISTERS_NB;
   memset (tab_rp_registers, 0, nb_points * sizeof (uint16_t));
 
-  #if 0
   /* TODO: fix this test, it fails even with the original code */
 
   /* Write registers to zero from tab_rp_registers and store read registers
@@ -339,26 +339,29 @@ void test_holding_registers (void) {
 
 void test_input_registers (void) {
   /** INPUT REGISTERS **/
-  TEST_ASSERT_EQUAL_INT (UT_INPUT_REGISTERS_NB,
-                         modbus_read_input_registers (ctx, UT_INPUT_REGISTERS_ADDRESS, UT_INPUT_REGISTERS_NB, tab_rp_registers));
+  int rc = modbus_read_input_registers (ctx, UT_INPUT_REGISTERS_ADDRESS, UT_INPUT_REGISTERS_NB, tab_rp_registers);
+  TEST_ASSERT_EQUAL_INT (UT_INPUT_REGISTERS_NB, rc);
 
   for (int i = 0; i < UT_INPUT_REGISTERS_NB; i++) {
 
-    TEST_ASSERT_EQUAL_UINT16 (UT_INPUT_REGISTERS_TAB[i],
-                              tab_rp_registers[i]);
+    TEST_ASSERT_EQUAL_UINT16 (UT_INPUT_REGISTERS_TAB[i], tab_rp_registers[i]);
   }
 }
 
 void test_mask_registers (void) {
-  /* MASKS */
-  TEST_ASSERT_EQUAL_INT (1,
-                         modbus_write_register (ctx, UT_REGISTERS_ADDRESS, 0x12));
-  TEST_ASSERT_NOT_EQUAL_INT (-1,
-                             modbus_mask_write_register (ctx, UT_REGISTERS_ADDRESS, 0xF2, 0x25));
-  TEST_ASSERT_EQUAL_INT (1,
-                         modbus_read_registers (ctx, UT_REGISTERS_ADDRESS, 1, tab_rp_registers));
-  TEST_ASSERT_EQUAL_UINT16 (0x17,
-                            tab_rp_registers[0]);
+  /* MASKS
+    new value = (current value AND 'and') OR ('or' AND (NOT 'and'))
+    new value = (0x12 AND 0xF2) OR (0x25 AND (NOT 0xF2)) = 0x12 OR 0x05 = 0x17
+  */
+  int rc = modbus_write_register (ctx, UT_REGISTERS_ADDRESS, 0x12);
+  TEST_ASSERT_EQUAL_INT (1, rc);
+
+  rc = modbus_mask_write_register (ctx, UT_REGISTERS_ADDRESS, 0xF2, 0x25);
+  TEST_ASSERT_NOT_EQUAL_INT (-1, rc);
+
+  rc = modbus_read_registers (ctx, UT_REGISTERS_ADDRESS, 1, tab_rp_registers);
+  TEST_ASSERT_EQUAL_INT (1, rc);
+  TEST_ASSERT_EQUAL_UINT16 (0x17, tab_rp_registers[0]);
 }
 
 void test_float (void) {
