@@ -1,0 +1,21 @@
+#!/bin/sh
+
+client=@CMAKE_BINARY_DIR@/@CLIENT_TEST@
+server=@CMAKE_BINARY_DIR@/@SERVER_TEST@
+client_log=$client.log
+server_log=$server.log
+
+rm -f $client_log $server_log
+
+echo "Starting server"
+$server > $server_log 2>&1 &
+
+sleep 2
+
+echo "Starting client"
+$client 2>&1 | tee -a $client_log 
+rc=$?
+
+killall -q $server
+exit $rc
+

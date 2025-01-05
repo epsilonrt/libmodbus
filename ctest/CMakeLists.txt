@@ -16,7 +16,9 @@ FetchContent_Declare(
     SOURCE_DIR 3rdparty/unity
 
 )
+add_definitions(-DUNITY_INCLUDE_PRINT_FORMATTED)
 FetchContent_MakeAvailable(unity)
+
 
 
 # Collect a list of all the test files in the test directory.
@@ -67,14 +69,26 @@ foreach (TEST_FILE ${TEST_FILES})
     #   target_compile_options(${target} PRIVATE /MT)
     #   target_link_options(${target} PRIVATE /INCREMENTAL:NO /NODEFAULTLIB:MSVCRT)
     # endif()
-
-    # Add the test so it can be run with CTest.
-    add_test(NAME ${MODULE_TEST_NAME} COMMAND ${MODULE_TEST_NAME})
-    message(STATUS "Added test: " ${MODULE_TEST_NAME})
 endforeach ()
 
-add_test(NAME unit-tests
-    COMMAND ${CMAKE_COMMAND}
-            -DSERVER=$<TARGET_FILE:unit-server>
-            -DCLIENT=$<TARGET_FILE:unit-client>
-    -P ${CMAKE_CURRENT_SOURCE_DIR}/runtests.cmake)
+add_test(NAME version COMMAND version)
+message(STATUS "Added test: version")
+
+if(WIN32)
+    set(SERVER_TEST unit-server.exe)
+    set(CLIENT_TEST unit-client.exe)
+    # TODO: Fix the client-server-test.cmd.in file in Windows environment
+    # configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/client-server-test.cmd.in 
+    #                 ${CMAKE_BINARY_DIR}/unit-tests.cmd @ONLY)
+    # add_test(NAME unit-tests
+    #     COMMAND sh ${CMAKE_BINARY_DIR}/unit-tests.cmd)
+    # message(STATUS "Added test: unit-tests command script")
+else()
+    set(SERVER_TEST unit-server)
+    set(CLIENT_TEST unit-client)
+    configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/client-server-test.sh.in 
+                    ${CMAKE_BINARY_DIR}/unit-tests.sh @ONLY)
+    add_test(NAME unit-tests
+        COMMAND sh ${CMAKE_BINARY_DIR}/unit-tests.sh)
+    message(STATUS "Added test: unit-tests shell script")
+endif()
