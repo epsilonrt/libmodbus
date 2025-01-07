@@ -1,0 +1,22 @@
+#!/usr/bin/env pwsh
+
+$client = "@CMAKE_BINARY_DIR@/@CLIENT_TEST@"
+$server = "@CMAKE_BINARY_DIR@/@SERVER_TEST@"
+$client_log = "$client.log"
+$server_log = "$server.log"
+$server_err = "$server.err"
+
+Remove-Item -Force -ErrorAction Ignore $client_log, $server_log
+
+Write-Output "Starting server"
+Start-Process -FilePath $server -RedirectStandardOutput $server_log -RedirectStandardError $server_err -NoNewWindow
+
+Start-Sleep -Seconds 2
+
+Write-Output "Starting client"
+$client_output = & $client 2>&1 | Tee-Object -FilePath $client_log
+# $client
+$rc = $LASTEXITCODE
+
+Stop-Process -Name $server -ErrorAction SilentlyContinue
+exit $rc

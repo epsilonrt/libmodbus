@@ -74,18 +74,16 @@ endforeach ()
 add_test(NAME version COMMAND version)
 message(STATUS "Added test: version")
 
+# Add a unit test for the server and client, launching them as separate processes.
+set(SERVER_TEST unit-server)
+set(CLIENT_TEST unit-client)
 if(WIN32)
-    set(SERVER_TEST unit-server.exe)
-    set(CLIENT_TEST unit-client.exe)
-    # TODO: Fix the client-server-test.cmd.in file in Windows environment
-    # configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/client-server-test.cmd.in 
-    #                 ${CMAKE_BINARY_DIR}/unit-tests.cmd @ONLY)
-    # add_test(NAME unit-tests
-    #     COMMAND sh ${CMAKE_BINARY_DIR}/unit-tests.cmd)
-    # message(STATUS "Added test: unit-tests command script")
+    configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/client-server-test.ps1.in 
+                    ${CMAKE_BINARY_DIR}/unit-tests.ps1 @ONLY)
+    add_test(NAME unit-tests
+        COMMAND powershell -ExecutionPolicy Bypass -File "${CMAKE_BINARY_DIR}/unit-tests.ps1")
+    message(STATUS "Added test: unit-tests powershell script")
 else()
-    set(SERVER_TEST unit-server)
-    set(CLIENT_TEST unit-client)
     configure_file( ${CMAKE_CURRENT_SOURCE_DIR}/client-server-test.sh.in 
                     ${CMAKE_BINARY_DIR}/unit-tests.sh @ONLY)
     add_test(NAME unit-tests
