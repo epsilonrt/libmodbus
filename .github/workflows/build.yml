@@ -1,20 +1,22 @@
-name: Build libmodbus
+name: CMake Build
 
 on:
-    push:
-        branches: ["master"]
-    pull_request:
-        branches: ["master"]
-
+  push:
+    branches:
+      - cmake-support
+  pull_request:
+    branches:
+      - cmake-support
+  
 jobs:
-    build:
-        runs-on: ubuntu-latest
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
 
-        steps:
-            - uses: actions/checkout@v3
-            - name: configure
-              run: ./autogen.sh && ./configure
-            - name: make
-              run: make
-            - name: make distcheck
-              run: make distcheck
+    steps:
+    - uses: actions/checkout@v3.5.3
+    - uses: threeal/cmake-action@v1.2.0
+    - name: Build the project with CMake
+      run: cmake --build build

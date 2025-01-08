@@ -1,6 +1,15 @@
 # A groovy modbus library
 
-![Build Status](https://github.com/stephane/libmodbus/actions/workflows/build.yml/badge.svg)
+[![GitHub release (latest by date including pre-releases)](https://img.shields.io/github/v/release/epsilonrt/libmodbus?include_prereleases)](https://github.com/epsilonrt/libmodbus/releases)  
+[![Build Status](https://github.com/epsilonrt/libmodbus/actions/workflows/build.yml/badge.svg)](https://github.com/epsilonrt/libmodbus/actions/workflows/build.yml)
+
+This is a fork of the original [libmodbus](https://github.com/stephane/libmodbus) library with cmake build system for all supported platforms. Some features have been added to the library, such as:  
+- Support for Modbus routing to integrate multiple devices on the same medium.  
+- ASCII mode for serial communication.
+
+This feature was optional and may be enabled by setting the `MODBUS_ASCII_MODE` option to `ON`  or `MODBUS_ROUTING_ENABLED` to `ON` when configuring the library with cmake.
+
+Thus, the library is now able to be used as underlying communication layer for the [epsilonrt/libmodbuspp](https://github.com/epsilonrt/libmodbuspp) library.
 
 ## Overview
 
